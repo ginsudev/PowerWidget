@@ -5,7 +5,13 @@
 @property (nonatomic,copy) NSString * applicationName;
 @property (nonatomic,readonly) unsigned long long gridSizeClass;
 -(void)createPowerWidget;
--(void)freePW;
+-(void)setPWFrame;
+@end
+
+@interface SBHWidgetContainerView : UIView
+@property (nonatomic,copy) NSString * applicationName;
+@property (nonatomic,readonly) unsigned long long gridSizeClass;
+-(void)setPWFrame;
 @end
 
 @interface CHUISAvocadoHostViewController : UIViewController
@@ -40,37 +46,35 @@ UIVisualEffectView *visualEffectView;
     [self.view setHidden:YES];
   }
 }
-
 %end
 
-%hook SBHWidgetContainerViewController
-
--(void)viewDidLoad{
+%hook SBHWidgetContainerView
+-(void)layoutSubviews{
   %orig;
-  [self createPowerWidget];
+  if ([self.applicationName isEqualToString:@"Power"]){
+    [self setPWFrame];
+  }
 }
 
--(void)viewWillAppear:(BOOL)animated{
-  %orig;
-
-  overlay.frame = CGRectMake(0,0,self.viewIfLoaded.frame.size.width, self.viewIfLoaded.frame.size.height);
+%new -(void)setPWFrame{
+  overlay.frame = CGRectMake(0,0,self.frame.size.width, self.frame.size.height);
   visualEffectView.frame = overlay.bounds;
 
-  if (!(self.viewIfLoaded.frame.size.width > 300) && self.gridSizeClass == 1){
+  if (!(self.frame.size.width > 300) && self.gridSizeClass == 1){
     //small
-    respringContainer.frame = CGRectMake(10,10, self.viewIfLoaded.frame.size.width/2 - 15, self.viewIfLoaded.frame.size.height/2 - 15);
+    respringContainer.frame = CGRectMake(10,10, self.frame.size.width/2 - 15, self.frame.size.height/2 - 15);
     safeModeContainer.frame = CGRectMake(10,respringContainer.frame.origin.y + respringContainer.frame.size.height + 10, respringContainer.frame.size.width, respringContainer.frame.size.height);
     rebootContainer.frame = CGRectMake(respringContainer.frame.origin.x + respringContainer.frame.size.width + 10,10, respringContainer.frame.size.width, respringContainer.frame.size.height);
     uicacheContainer.frame = CGRectMake(rebootContainer.frame.origin.x,rebootContainer.frame.origin.y + rebootContainer.frame.size.height + 10, respringContainer.frame.size.width, respringContainer.frame.size.height);
-  } else if (self.gridSizeClass == 3 && (self.viewIfLoaded.frame.size.width > 300)){
+  } else if (self.gridSizeClass == 3 && (self.frame.size.width > 300)){
     //medium
-    respringContainer.frame = CGRectMake(10,10, self.viewIfLoaded.frame.size.width/2 - 15, self.viewIfLoaded.frame.size.height/2 - 15);
+    respringContainer.frame = CGRectMake(10,10, self.frame.size.width/2 - 15, self.frame.size.height/2 - 15);
     safeModeContainer.frame = CGRectMake(10,respringContainer.frame.origin.y + respringContainer.frame.size.height + 10, respringContainer.frame.size.width, respringContainer.frame.size.height);
     rebootContainer.frame = CGRectMake(respringContainer.frame.origin.x + respringContainer.frame.size.width + 10,10, respringContainer.frame.size.width, respringContainer.frame.size.height);
     uicacheContainer.frame = CGRectMake(rebootContainer.frame.origin.x,rebootContainer.frame.origin.y + rebootContainer.frame.size.height + 10, respringContainer.frame.size.width, respringContainer.frame.size.height);
   } else {
     //large
-    respringContainer.frame = CGRectMake(10,10, self.viewIfLoaded.frame.size.width/4 - 12.5, self.viewIfLoaded.frame.size.height - 20);
+    respringContainer.frame = CGRectMake(10,10, self.frame.size.width/4 - 12.5, self.frame.size.height - 20);
     safeModeContainer.frame = CGRectMake(respringContainer.frame.origin.x + respringContainer.frame.size.width + 10,10, respringContainer.frame.size.width, respringContainer.frame.size.height);
     rebootContainer.frame = CGRectMake(safeModeContainer.frame.origin.x + safeModeContainer.frame.size.width + 10,10, respringContainer.frame.size.width, respringContainer.frame.size.height);
     uicacheContainer.frame = CGRectMake(rebootContainer.frame.origin.x + rebootContainer.frame.size.width + 10,10, respringContainer.frame.size.width, respringContainer.frame.size.height);
@@ -81,15 +85,14 @@ UIVisualEffectView *visualEffectView;
   safeModeButton.frame = CGRectMake(safeModeContainer.frame.size.width/2 - 25,safeModeContainer.frame.size.height/2 - 25,50,50);
   rebootButton.frame = CGRectMake(rebootContainer.frame.size.width/2 - 25,rebootContainer.frame.size.height/2 - 25,50,50);
   uicacheButton.frame = CGRectMake(rebootContainer.frame.size.width/2 - 25,rebootContainer.frame.size.height/2 - 25,50,50);
-
-
 }
+%end
 
-%new -(void)freePW{
-    blurEffect = nil;
-    visualEffectView = nil;
-    [visualEffectView removeFromSuperview];
-    [overlay removeFromSuperview];
+%hook SBHWidgetContainerViewController
+
+-(void)viewDidLoad{
+  %orig;
+  [self createPowerWidget];
 }
 
 %new -(void)createPowerWidget{
@@ -167,45 +170,127 @@ UIVisualEffectView *visualEffectView;
 
 %new -(void)handleRespring:(UITapGestureRecognizer *)recognizer
 {
-  NSTask *task = [[NSTask alloc] init];
-  [task setLaunchPath:@"/bin/bash"];
-  [task setArguments:@[@"-c", @"/usr/bin/killall SpringBoard"]];
-  [task launch];
+
+  UIAlertController *alert = [UIAlertController
+  alertControllerWithTitle:@"Power Widget"
+  message:@"Respring confirmation."
+  preferredStyle:UIAlertControllerStyleAlert];
+
+  UIAlertAction* noButton = [UIAlertAction
+  actionWithTitle:@"Cancel"
+  style:UIAlertActionStyleDefault
+  handler:^(UIAlertAction * action) {
+  }];
+
+  UIAlertAction* yesButton = [UIAlertAction
+  actionWithTitle:@"Proceed"
+  style:UIAlertActionStyleDefault
+  handler:^(UIAlertAction * action) {
+    NSTask *task = [[NSTask alloc] init];
+    [task setLaunchPath:@"/bin/bash"];
+    [task setArguments:@[@"-c", @"/usr/bin/killall SpringBoard"]];
+    [task launch];
+  }];
+
+  [alert addAction:noButton];
+  [alert addAction:yesButton];
+  [self presentViewController:alert animated:YES completion:nil];
+
 }
 
 %new -(void)handleSafeMode:(UITapGestureRecognizer *)recognizer
 {
-  NSTask *task = [[NSTask alloc] init];
-  [task setLaunchPath:@"/bin/bash"];
-  [task setArguments:@[@"-c", @"/usr/bin/killall -SEGV SpringBoard"]];
-  [task launch];
+  UIAlertController *alert = [UIAlertController
+  alertControllerWithTitle:@"Power Widget"
+  message:@"Safe mode confirmation."
+  preferredStyle:UIAlertControllerStyleAlert];
+
+  UIAlertAction* noButton = [UIAlertAction
+  actionWithTitle:@"Cancel"
+  style:UIAlertActionStyleDefault
+  handler:^(UIAlertAction * action) {
+  }];
+
+  UIAlertAction* yesButton = [UIAlertAction
+  actionWithTitle:@"Proceed"
+  style:UIAlertActionStyleDefault
+  handler:^(UIAlertAction * action) {
+    NSTask *task = [[NSTask alloc] init];
+    [task setLaunchPath:@"/bin/bash"];
+    [task setArguments:@[@"-c", @"/usr/bin/killall -SEGV SpringBoard"]];
+    [task launch];
+  }];
+
+  [alert addAction:noButton];
+  [alert addAction:yesButton];
+  [self presentViewController:alert animated:YES completion:nil];
 }
 
 %new -(void)handleReboot:(UITapGestureRecognizer *)recognizer
 {
-  NSTask *task = [[NSTask alloc] init];
-  [task setLaunchPath:@"/bin/bash"];
-  [task setArguments:@[@"-c", @"launchctl reboot userspace"]];
-  [task launch];
+  UIAlertController *alert = [UIAlertController
+  alertControllerWithTitle:@"Power Widget"
+  message:@"Reboot userspace confirmation."
+  preferredStyle:UIAlertControllerStyleAlert];
+
+  UIAlertAction* noButton = [UIAlertAction
+  actionWithTitle:@"Cancel"
+  style:UIAlertActionStyleDefault
+  handler:^(UIAlertAction * action) {
+  }];
+
+  UIAlertAction* yesButton = [UIAlertAction
+  actionWithTitle:@"Proceed"
+  style:UIAlertActionStyleDefault
+  handler:^(UIAlertAction * action) {
+    NSTask *task = [[NSTask alloc] init];
+    [task setLaunchPath:@"/bin/bash"];
+    [task setArguments:@[@"-c", @"launchctl reboot userspace"]];
+    [task launch];
+  }];
+
+  [alert addAction:noButton];
+  [alert addAction:yesButton];
+  [self presentViewController:alert animated:YES completion:nil];
 }
 
 %new -(void)handleUIcache:(UITapGestureRecognizer *)recognizer
 {
 
-  NSFileManager *fileManager = [NSFileManager defaultManager];
-  NSString *pathForFile = @"/Applications/Sileo.app/Sileo";
+  UIAlertController *alert = [UIAlertController
+  alertControllerWithTitle:@"Power Widget"
+  message:@"UICache confirmation. It may take a moment to complete."
+  preferredStyle:UIAlertControllerStyleAlert];
 
-  if ([fileManager fileExistsAtPath:pathForFile]){
-    NSTask *task = [[NSTask alloc] init];
-    [task setLaunchPath:@"/bin/bash"];
-    [task setArguments:@[@"-c", @"uicache --all"]];
-    [task launch];
-  } else {
-    NSTask *task = [[NSTask alloc] init];
-    [task setLaunchPath:@"/bin/bash"];
-    [task setArguments:@[@"-c", @"uicache"]];
-    [task launch];
-  }
+  UIAlertAction* noButton = [UIAlertAction
+  actionWithTitle:@"Cancel"
+  style:UIAlertActionStyleDefault
+  handler:^(UIAlertAction * action) {
+  }];
+
+  UIAlertAction* yesButton = [UIAlertAction
+  actionWithTitle:@"Proceed"
+  style:UIAlertActionStyleDefault
+  handler:^(UIAlertAction * action) {
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSString *pathForFile = @"/Applications/Sileo.app/Sileo";
+
+    if ([fileManager fileExistsAtPath:pathForFile]){
+      NSTask *task = [[NSTask alloc] init];
+      [task setLaunchPath:@"/bin/bash"];
+      [task setArguments:@[@"-c", @"uicache --all"]];
+      [task launch];
+    } else {
+      NSTask *task = [[NSTask alloc] init];
+      [task setLaunchPath:@"/bin/bash"];
+      [task setArguments:@[@"-c", @"uicache"]];
+      [task launch];
+    }
+  }];
+
+  [alert addAction:noButton];
+  [alert addAction:yesButton];
+  [self presentViewController:alert animated:YES completion:nil];
 }
 
 %end

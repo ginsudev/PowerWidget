@@ -1,6 +1,6 @@
 ARCHS = arm64 arm64e
 THEOS_DEVICE_IP = 192.168.1.42
-PACKAGE_VERSION = 1.1
+PACKAGE_VERSION = 1.1.1
 INSTALL_TARGET_PROCESSES = SpringBoard
 
 include $(THEOS)/makefiles/common.mk
