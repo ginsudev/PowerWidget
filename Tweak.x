@@ -56,24 +56,31 @@ UIVisualEffectView *visualEffectView;
   }
 }
 
+-(void)viewWillAppear:(BOOL)arg1{
+  %orig;
+  if ([self.applicationName isEqualToString:@"Power"]){
+    [self setPWFrame];
+  }
+}
+
 %new -(void)setPWFrame{
-  overlay.frame = CGRectMake(0,0,self.frame.size.width, self.frame.size.height);
+  overlay.frame = self.bounds;
   visualEffectView.frame = overlay.bounds;
 
-  if (!(self.frame.size.width > 300) && self.gridSizeClass == 1){
+  if (self.gridSizeClass == 1){
     //small
     respringContainer.frame = CGRectMake(10,10, self.frame.size.width/2 - 15, self.frame.size.height/2 - 15);
     safeModeContainer.frame = CGRectMake(10,respringContainer.frame.origin.y + respringContainer.frame.size.height + 10, respringContainer.frame.size.width, respringContainer.frame.size.height);
     rebootContainer.frame = CGRectMake(respringContainer.frame.origin.x + respringContainer.frame.size.width + 10,10, respringContainer.frame.size.width, respringContainer.frame.size.height);
     uicacheContainer.frame = CGRectMake(rebootContainer.frame.origin.x,rebootContainer.frame.origin.y + rebootContainer.frame.size.height + 10, respringContainer.frame.size.width, respringContainer.frame.size.height);
-  } else if (self.gridSizeClass == 3 && (self.frame.size.width > 300)){
-    //medium
+  } else if (self.gridSizeClass == 3){
+    //large
     respringContainer.frame = CGRectMake(10,10, self.frame.size.width/2 - 15, self.frame.size.height/2 - 15);
     safeModeContainer.frame = CGRectMake(10,respringContainer.frame.origin.y + respringContainer.frame.size.height + 10, respringContainer.frame.size.width, respringContainer.frame.size.height);
     rebootContainer.frame = CGRectMake(respringContainer.frame.origin.x + respringContainer.frame.size.width + 10,10, respringContainer.frame.size.width, respringContainer.frame.size.height);
     uicacheContainer.frame = CGRectMake(rebootContainer.frame.origin.x,rebootContainer.frame.origin.y + rebootContainer.frame.size.height + 10, respringContainer.frame.size.width, respringContainer.frame.size.height);
-  } else {
-    //large
+  } else if (self.gridSizeClass == 2){
+    //medium
     respringContainer.frame = CGRectMake(10,10, self.frame.size.width/4 - 12.5, self.frame.size.height - 20);
     safeModeContainer.frame = CGRectMake(respringContainer.frame.origin.x + respringContainer.frame.size.width + 10,10, respringContainer.frame.size.width, respringContainer.frame.size.height);
     rebootContainer.frame = CGRectMake(safeModeContainer.frame.origin.x + safeModeContainer.frame.size.width + 10,10, respringContainer.frame.size.width, respringContainer.frame.size.height);
@@ -90,6 +97,44 @@ UIVisualEffectView *visualEffectView;
 
 %hook SBHWidgetContainerViewController
 
+-(void)viewWillAppear:(BOOL)arg1{
+  %orig;
+  if ([self.applicationName isEqualToString:@"Power"]){
+    [self setPWFrame];
+  }
+}
+
+%new -(void)setPWFrame{
+  overlay.frame = self.view.bounds;
+  visualEffectView.frame = overlay.bounds;
+
+  if (self.gridSizeClass == 1){
+    //small
+    respringContainer.frame = CGRectMake(10,10, self.view.frame.size.width/2 - 15, self.view.frame.size.height/2 - 15);
+    safeModeContainer.frame = CGRectMake(10,respringContainer.frame.origin.y + respringContainer.frame.size.height + 10, respringContainer.frame.size.width, respringContainer.frame.size.height);
+    rebootContainer.frame = CGRectMake(respringContainer.frame.origin.x + respringContainer.frame.size.width + 10,10, respringContainer.frame.size.width, respringContainer.frame.size.height);
+    uicacheContainer.frame = CGRectMake(rebootContainer.frame.origin.x,rebootContainer.frame.origin.y + rebootContainer.frame.size.height + 10, respringContainer.frame.size.width, respringContainer.frame.size.height);
+  } else if (self.gridSizeClass == 3){
+    //large
+    respringContainer.frame = CGRectMake(10,10, self.view.frame.size.width/2 - 15, self.view.frame.size.height/2 - 15);
+    safeModeContainer.frame = CGRectMake(10,respringContainer.frame.origin.y + respringContainer.frame.size.height + 10, respringContainer.frame.size.width, respringContainer.frame.size.height);
+    rebootContainer.frame = CGRectMake(respringContainer.frame.origin.x + respringContainer.frame.size.width + 10,10, respringContainer.frame.size.width, respringContainer.frame.size.height);
+    uicacheContainer.frame = CGRectMake(rebootContainer.frame.origin.x,rebootContainer.frame.origin.y + rebootContainer.frame.size.height + 10, respringContainer.frame.size.width, respringContainer.frame.size.height);
+  } else if (self.gridSizeClass == 2){
+    //medium
+    respringContainer.frame = CGRectMake(10,10, self.view.frame.size.width/4 - 12.5, self.view.frame.size.height - 20);
+    safeModeContainer.frame = CGRectMake(respringContainer.frame.origin.x + respringContainer.frame.size.width + 10,10, respringContainer.frame.size.width, respringContainer.frame.size.height);
+    rebootContainer.frame = CGRectMake(safeModeContainer.frame.origin.x + safeModeContainer.frame.size.width + 10,10, respringContainer.frame.size.width, respringContainer.frame.size.height);
+    uicacheContainer.frame = CGRectMake(rebootContainer.frame.origin.x + rebootContainer.frame.size.width + 10,10, respringContainer.frame.size.width, respringContainer.frame.size.height);
+
+  }
+
+  respringButton.frame = CGRectMake(respringContainer.frame.size.width/2 - 25,respringContainer.frame.size.height/2 - 25,50,50);
+  safeModeButton.frame = CGRectMake(safeModeContainer.frame.size.width/2 - 25,safeModeContainer.frame.size.height/2 - 25,50,50);
+  rebootButton.frame = CGRectMake(rebootContainer.frame.size.width/2 - 25,rebootContainer.frame.size.height/2 - 25,50,50);
+  uicacheButton.frame = CGRectMake(rebootContainer.frame.size.width/2 - 25,rebootContainer.frame.size.height/2 - 25,50,50);
+}
+
 -(void)viewDidLoad{
   %orig;
   [self createPowerWidget];
@@ -102,11 +147,8 @@ UIVisualEffectView *visualEffectView;
       [self.view addSubview:overlay];
       [self.view bringSubviewToFront:overlay];
 
-      if ([[%c(UIUserInterfaceStyleArbiter) sharedInstance] currentStyle] == 2){
-        blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
-      } else {
-        blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleLight];
-      }
+      BOOL isDarkMode = ([[%c(UIUserInterfaceStyleArbiter) sharedInstance] currentStyle] == 2) ? YES : NO;
+      blurEffect = isDarkMode ? [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark] : [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemThinMaterialLight];
       visualEffectView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
       [overlay addSubview:visualEffectView];
 
@@ -114,44 +156,44 @@ UIVisualEffectView *visualEffectView;
       respringContainer = [[UIView alloc] init];
       [respringContainer.layer setCornerRadius:13];
       respringContainer.clipsToBounds = YES;
-      respringContainer.backgroundColor = [[UIColor grayColor] colorWithAlphaComponent:0.4];
+      respringContainer.backgroundColor = [[UIColor grayColor] colorWithAlphaComponent:0.2];
       respringTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleRespring:)];
       respringButton = [[UIImageView alloc]init];
       respringButton.image = [[UIImage imageNamed:@"/Library/Application Support/PowerWidget/respringIcon.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-      [respringButton setTintColor:[UIColor whiteColor]];
+      respringButton.tintColor = isDarkMode ? [UIColor whiteColor] : [UIColor blackColor];
 
 
       //Safe mode
       safeModeContainer = [[UIView alloc] init];
       [safeModeContainer.layer setCornerRadius:13];
       safeModeContainer.clipsToBounds = YES;
-      safeModeContainer.backgroundColor = [[UIColor grayColor] colorWithAlphaComponent:0.4];
+      safeModeContainer.backgroundColor = [[UIColor grayColor] colorWithAlphaComponent:0.2];
       safeModeTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleSafeMode:)];
       safeModeButton = [[UIImageView alloc]init];
       safeModeButton.image = [[UIImage imageNamed:@"/Library/Application Support/PowerWidget/safemodeIcon.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-      [safeModeButton setTintColor:[UIColor whiteColor]];
+      safeModeButton.tintColor = isDarkMode ? [UIColor whiteColor] : [UIColor blackColor];
 
 
       //Reboot
       rebootContainer = [[UIView alloc] init];
       [rebootContainer.layer setCornerRadius:13];
       rebootContainer.clipsToBounds = YES;
-      rebootContainer.backgroundColor = [[UIColor grayColor] colorWithAlphaComponent:0.4];
+      rebootContainer.backgroundColor = [[UIColor grayColor] colorWithAlphaComponent:0.2];
       rebootTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleReboot:)];
       rebootButton = [[UIImageView alloc]init];
       rebootButton.image = [[UIImage imageNamed:@"/Library/Application Support/PowerWidget/rebootIcon.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-      [rebootButton setTintColor:[UIColor whiteColor]];
+      rebootButton.tintColor = isDarkMode ? [UIColor whiteColor] : [UIColor blackColor];
 
 
       //UICache
       uicacheContainer = [[UIView alloc] init];
       [uicacheContainer.layer setCornerRadius:13];
       uicacheContainer.clipsToBounds = YES;
-      uicacheContainer.backgroundColor = [[UIColor grayColor] colorWithAlphaComponent:0.4];
+      uicacheContainer.backgroundColor = [[UIColor grayColor] colorWithAlphaComponent:0.2];
       uicacheTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleUIcache:)];
       uicacheButton = [[UIImageView alloc]init];
       uicacheButton.image = [[UIImage imageNamed:@"/Library/Application Support/PowerWidget/uicacheIcon.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-      [uicacheButton setTintColor:[UIColor whiteColor]];
+      uicacheButton.tintColor = isDarkMode ? [UIColor whiteColor] : [UIColor blackColor];
 
       [overlay addSubview:respringContainer];
       [respringContainer addGestureRecognizer:respringTap];
